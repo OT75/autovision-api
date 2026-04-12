@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoVision — Live Detection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+            color: #fff;
+        }
+
+        h1 span {
+            color: #60a5fa;
+        }
+
+        .main {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 1100px;
+        }
+
+        .video-container {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #222;
+            background: #111;
+        }
+
+        #outputCanvas {
+            display: block;
+            max-width: 640px;
+            width: 100%;
+            height: auto;
+        }
+
+        #webcam {
+            display: none;
+        }
+
+        #captureCanvas {
+            display: none;
+        }
+
+        .status-bar {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            backdrop-filter: blur(8px);
+        }
+
+        .badge-live {
+            background: rgba(239, 68, 68, 0.8);
+            color: #fff;
+        }
+
+        .badge-fps {
+            background: rgba(0, 0, 0, 0.6);
+            color: #60a5fa;
+        }
+
+        .badge-latency {
+            background: rgba(0, 0, 0, 0.6);
+            color: #fbbf24;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-width: 240px;
+        }
+
+        .card {
+            background: #141414;
+            border: 1px solid #222;
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .card-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            font-size: 13px;
+        }
+
+        .stat-label {
+            color: #888;
+        }
+
+        .stat-value {
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .detection-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .det-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 13px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .det-item:last-child {
+            border: none;
+        }
+
+        .det-conf {
+            color: #60a5fa;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 8px 20px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        button:hover {
+            background: #252525;
+            border-color: #444;
+        }
+
+        button.active {
+            background: #1d4ed8;
+            border-color: #3b82f6;
+            color: #fff;
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            color: #444;
+            font-size: 13px;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1><span>AutoVision</span> — live detection</h1>
+
+    <div class="main">
+        <div>
+            <div class="video-container">
+                <video id="webcam" autoplay playsinline></video>
+                <canvas id="captureCanvas"></canvas>
+                <canvas id="outputCanvas" width="640" height="480"></canvas>
+
+                <div class="status-bar">
+                    <span class="badge badge-live" id="statusBadge">CONNECTING</span>
+                    <span class="badge badge-fps" id="fpsBadge">-- FPS</span>
+                    <span class="badge badge-latency" id="latencyBadge">-- ms</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="startBtn" class="active" onclick="startStream()">Start</button>
+                <button id="stopBtn" disabled onclick="stopStream()">Stop</button>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="card">
+                <div class="card-title">Stats</div>
+                <div class="stat-row">
+                    <span class="stat-label">Objects detected</span>
+                    <span class="stat-value" id="statDetections">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Inference time</span>
+                    <span class="stat-value" id="statInference">-- ms</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Round-trip</span>
+                    <span class="stat-value" id="statRoundtrip">-- ms</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Frames sent</span>
+                    <span class="stat-value" id="statFrames">0</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Current detections</div>
+                <div class="detection-list" id="detectionList">
+                    <div class="empty-state">No detections yet</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Session totals</div>
+                <div id="classCounts">
+                    <div class="empty-state">Waiting for data...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const webcamEl = document.getElementById('webcam');
+        const captureCanvas = document.getElementById('captureCanvas');
+        const outputCanvas = document.getElementById('outputCanvas');
+        const outputCtx = outputCanvas.getContext('2d');
+
+        let ws = null;
+        let running = false;
+        let frameCount = 0;
+        let fpsFrames = 0;
+        let fpsInterval = null;
+        let classTotals = {};
+        let waitingForResponse = false;
+
+        async function startStream() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: 640, height: 480, facingMode: 'environment' }
+                });
+                webcamEl.srcObject = stream;
+                await webcamEl.play();
+            } catch (err) {
+                alert('Could not access webcam: ' + err.message);
+                return;
+            }
+
+            captureCanvas.width = webcamEl.videoWidth || 640;
+            captureCanvas.height = webcamEl.videoHeight || 480;
+            outputCanvas.width = captureCanvas.width;
+            outputCanvas.height = captureCanvas.height;
+
+            const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${location.host}/ws/detect`);
+
+            ws.onopen = () => {
+                document.getElementById('statusBadge').textContent = 'LIVE';
+                running = true;
+                waitingForResponse = false;
+                frameCount = 0;
+                classTotals = {};
+                sendFrame();
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                if (data.error) {
+                    console.error('Server error:', data.error);
+                    waitingForResponse = false;
+                    return;
+                }
+
+                const img = new Image();
+                img.onload = () => { outputCtx.drawImage(img, 0, 0); };
+                img.src = 'data:image/jpeg;base64,' + data.frame;
+
+                frameCount++;
+                fpsFrames++;
+                document.getElementById('statDetections').textContent = data.num_detections;
+                document.getElementById('statInference').textContent = data.inference_ms + ' ms';
+                document.getElementById('statFrames').textContent = frameCount;
+                document.getElementById('latencyBadge').textContent = data.inference_ms + ' ms';
+
+                updateDetectionList(data.detections);
+
+                for (const det of data.detections) {
+                    classTotals[det.class_name] = (classTotals[det.class_name] || 0) + 1;
+                }
+                updateClassCounts();
+
+                waitingForResponse = false;
+                if (running) { requestAnimationFrame(sendFrame); }
+            };
+
+            ws.onerror = (err) => {
+                console.error('WebSocket error:', err);
+                document.getElementById('statusBadge').textContent = 'ERROR';
+            };
+
+            ws.onclose = () => {
+                document.getElementById('statusBadge').textContent = 'DISCONNECTED';
+                running = false;
+            };
+
+            fpsInterval = setInterval(() => {
+                document.getElementById('fpsBadge').textContent = fpsFrames + ' FPS';
+                fpsFrames = 0;
+            }, 1000);
+
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('startBtn').classList.remove('active');
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('stopBtn').classList.add('active');
+        }
+
+        function sendFrame() {
+            if (!running || !ws || ws.readyState !== WebSocket.OPEN || waitingForResponse) return;
+
+            const ctx = captureCanvas.getContext('2d');
+            ctx.drawImage(webcamEl, 0, 0);
+
+            const dataUrl = captureCanvas.toDataURL('image/jpeg', 0.7);
+            const base64 = dataUrl.split(',')[1];
+
+            waitingForResponse = true;
+            ws.send(JSON.stringify({ frame: base64 }));
+        }
+
+        function stopStream() {
+            running = false;
+
+            if (ws) { ws.close(); ws = null; }
+
+            const stream = webcamEl.srcObject;
+            if (stream) {
+                stream.getTracks().forEach(t => t.stop());
+                webcamEl.srcObject = null;
+            }
+
+            if (fpsInterval) { clearInterval(fpsInterval); fpsInterval = null; }
+
+            document.getElementById('statusBadge').textContent = 'STOPPED';
+            document.getElementById('fpsBadge').textContent = '-- FPS';
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('startBtn').classList.add('active');
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('stopBtn').classList.remove('active');
+        }
+
+        function updateDetectionList(detections) {
+            const container = document.getElementById('detectionList');
+            if (detections.length === 0) {
+                container.innerHTML = '<div class="empty-state">No objects in frame</div>';
+                return;
+            }
+            container.innerHTML = detections.map(d =>
+                `<div class="det-item">
+        <span>${d.class_name}</span>
+        <span class="det-conf">${(d.confidence * 100).toFixed(0)}%</span>
+      </div>`
+            ).join('');
+        }
+
+        function updateClassCounts() {
+            const container = document.getElementById('classCounts');
+            const entries = Object.entries(classTotals).sort((a, b) => b[1] - a[1]);
+            if (entries.length === 0) {
+                container.innerHTML = '<div class="empty-state">Waiting for data...</div>';
+                return;
+            }
+            container.innerHTML = entries.map(([name, count]) =>
+                `<div class="stat-row">
+        <span class="stat-label">${name}</span>
+        <span class="stat-value">${count}</span>
+      </div>`
+            ).join('');
+        }
+    </script>
+
+</body>
+
+</html>

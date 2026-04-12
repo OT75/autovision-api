@@ -1,0 +1,21 @@
+# ==============================================================
+# docker-compose.yml — AutoVision API
+# ==============================================================
+# Phase 1: Just the API
+# Phase 2: + MLflow tracking server
+# Phase 5: + Prometheus + Grafana
+# This file grows with your project — that's the point.
+# ==============================================================
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_NAME=yolov8n.pt
+      - CONFIDENCE_THRESHOLD=0.25
+    # Restart on crash (production habit — good to have from day 1)
+    restart: unless-stopped
