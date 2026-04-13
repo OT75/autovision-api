@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find S:MLOpsProjectsautovision-apiautovision-apiruns -type f -name *)",
+      "Bash(find S:MLOpsProjectsautovision-apiautovision-apidata -type f -name *)"
+    ]
+  }
+}

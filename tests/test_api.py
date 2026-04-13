@@ -11,6 +11,7 @@ Run with: pytest tests/ -v
 """
 
 import io
+import json
 import tempfile
 
 import cv2
@@ -20,8 +21,10 @@ from fastapi.testclient import TestClient
 from PIL import Image
 
 from app.main import app
+from app.model import detector
 
 client = TestClient(app)
+detector.load()
 
 
 # ================================================================
@@ -102,9 +105,10 @@ def test_predict_accepts_valid_image():
     buf = make_test_image()
     response = client.post("/predict", files={"file": ("test.jpg", buf, "image/jpeg")})
     assert response.status_code == 200
+    assert response.headers["content-type"] == "image/jpeg"
+    assert "X-Detections" in response.headers
 
-    data = response.json()
-    assert data["success"] is True
+    data = json.loads(response.headers["X-Detections"])
     assert isinstance(data["detections"], list)
     assert data["image_width"] == 640
     assert data["image_height"] == 480
@@ -114,7 +118,7 @@ def test_predict_accepts_valid_image():
 def test_predict_detection_schema():
     buf = make_test_image()
     response = client.post("/predict", files={"file": ("t.jpg", buf, "image/jpeg")})
-    data = response.json()
+    data = json.loads(response.headers["X-Detections"])
 
     for det in data["detections"]:
         assert isinstance(det["class_id"], int)
@@ -151,12 +155,13 @@ def test_video_accepts_valid_video():
     response = client.post(
         "/predict/video",
         files={"file": ("test.mp4", buf, "video/mp4")},
-        data={"sample_fps": "2"},
+        params={"sample_fps": 2},
     )
     assert response.status_code == 200
+    assert response.headers["content-type"] == "video/mp4"
+    assert "X-Summary" in response.headers
 
-    data = response.json()
-    assert data["success"] is True
+    data = json.loads(response.headers["X-Summary"])
 
     # Check video_info
     assert data["video_info"]["width"] == 320
@@ -172,15 +177,6 @@ def test_video_accepts_valid_video():
     assert "total_detections" in data["summary"]
     assert isinstance(data["summary"]["class_counts"], dict)
 
-    # Check frames
-    assert isinstance(data["frames"], list)
-    assert len(data["frames"]) >= 1
-
-    for frame in data["frames"]:
-        assert "frame_index" in frame
-        assert "timestamp_sec" in frame
-        assert isinstance(frame["detections"], list)
-
 
 def test_video_sample_fps_parameter():
     """Higher sample_fps should analyze more frames."""
@@ -188,18 +184,21 @@ def test_video_sample_fps_parameter():
     response1 = client.post(
         "/predict/video",
         files={"file": ("t.mp4", buf1, "video/mp4")},
-        data={"sample_fps": "1"},
+        params={"sample_fps": 1},
     )
 
     buf2 = make_test_video(frames=30)
     response2 = client.post(
         "/predict/video",
         files={"file": ("t.mp4", buf2, "video/mp4")},
-        data={"sample_fps": "5"},
+        params={"sample_fps": 5},
     )
 
-    frames1 = response1.json()["processing_info"]["frames_analyzed"]
-    frames2 = response2.json()["processing_info"]["frames_analyzed"]
+    data1 = json.loads(response1.headers["X-Summary"])
+    data2 = json.loads(response2.headers["X-Summary"])
+
+    frames1 = data1["processing_info"]["frames_analyzed"]
+    frames2 = data2["processing_info"]["frames_analyzed"]
 
     # sample_fps=5 should analyze more frames than sample_fps=1
     assert frames2 > frames1

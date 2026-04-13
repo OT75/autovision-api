@@ -16,6 +16,9 @@ Pillow==11.2.1
 # Validation
 pydantic==2.11.3
 
+# Experiment tracking (Phase 2)
+mlflow==2.21.3
+
 # Testing
 pytest==8.4.0
 httpx==0.28.1

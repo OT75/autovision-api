@@ -77,7 +77,7 @@ async def websocket_detect(websocket: WebSocket):
             inference_ms = round((time.time() - start) * 1000, 1)
 
             # Draw boxes and encode back to JPEG
-            annotated = draw_detections_on_frame(frame, detections)
+            annotated = draw_detections_on_frame(frame, detections, detector._color_map)
             _, buffer = cv2.imencode(".jpg", annotated, [cv2.IMWRITE_JPEG_QUALITY, 80])
             annotated_b64 = base64.b64encode(buffer).decode("utf-8")
 

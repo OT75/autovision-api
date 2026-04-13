@@ -37,12 +37,16 @@ COPY --from=builder /install /usr/local
 # Copy application code
 COPY app/ app/
 
-# Download the YOLO model at build time so it's baked into the image
-# (Phase 2 will switch this to loading from MLflow/S3 at runtime)
-RUN python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')"
+# Set a writable YOLO config dir so the non-root user can write settings at runtime
+ENV YOLO_CONFIG_DIR=/app/.ultralytics
 
-# Non-root user for security
-RUN useradd --create-home appuser
+# Download yolov8n.pt (fallback model) into YOLO_CONFIG_DIR while still root
+RUN mkdir -p /app/.ultralytics && \
+    python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')"
+
+# Non-root user for security — give them ownership of /app (including .ultralytics)
+RUN useradd --create-home appuser && \
+    chown -R appuser:appuser /app
 USER appuser
 
 # Expose the port

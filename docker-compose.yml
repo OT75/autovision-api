@@ -1,21 +1,39 @@
 # ==============================================================
-# docker-compose.yml — AutoVision API
-# ==============================================================
-# Phase 1: Just the API
-# Phase 2: + MLflow tracking server
-# Phase 5: + Prometheus + Grafana
-# This file grows with your project — that's the point.
+# docker-compose.yml — AutoVision API + MLflow
 # ==============================================================
 
 services:
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.21.3
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow-data:/mlflow
+    environment:
+      - MLFLOW_BACKEND_STORE_URI=sqlite:///mlflow/mlflow.db
+      - MLFLOW_DEFAULT_ARTIFACT_ROOT=/mlflow/artifacts
+    command: >
+      mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow/mlflow.db --default-artifact-root /mlflow/artifacts
+    restart: unless-stopped
+
   api:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    volumes:
+      - mlflow-data:/mlflow
     environment:
+      - MODEL_SOURCE=local # =mlflow for the fine tuned model
       - MODEL_NAME=yolov8n.pt
       - CONFIDENCE_THRESHOLD=0.25
-    # Restart on crash (production habit — good to have from day 1)
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MLFLOW_MODEL_NAME=autovision-traffic
+    depends_on:
+      - mlflow
     restart: unless-stopped
+
+volumes:
+  mlflow-data:

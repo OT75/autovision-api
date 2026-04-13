@@ -1,0 +1,19 @@
+# Experiment 1: Baseline
+# Default learning rate, smaller images for fast CPU training
+# This is your control — other experiments change one thing at a time
+
+run_name: "exp1-baseline"
+base_model: "yolov8n.pt"
+data_yaml: "data/traffic/data.yaml"
+
+epochs: 20
+imgsz: 416        # smaller than default 640 — much faster on CPU
+batch: 8          # small batch for CPU memory
+lr0: 0.01         # YOLO default
+lrf: 0.01
+
+augment: true
+mosaic: 1.0
+mixup: 0.0
+fliplr: 0.5
+flipud: 0.0

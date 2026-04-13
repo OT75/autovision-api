@@ -9,6 +9,12 @@ venv/
 *.pt
 runs/
 
+# Dataset (downloaded locally, not committed)
+data/
+
+# MLflow local data
+mlruns/
+
 # IDE
 .vscode/
 .idea/

@@ -1,0 +1,20 @@
+# Experiment 2: Higher resolution
+# Same as baseline but with larger images (640 instead of 416)
+# Hypothesis: bigger images = better detection of small/distant vehicles
+# Tradeoff: ~2x slower training
+
+run_name: "exp2-high-res"
+base_model: "yolov8n.pt"
+data_yaml: "data/traffic/data.yaml"
+
+epochs: 20
+imgsz: 640        # standard YOLO size — better for small objects
+batch: 4          # smaller batch because images are bigger
+lr0: 0.01
+lrf: 0.01
+
+augment: true
+mosaic: 1.0
+mixup: 0.0
+fliplr: 0.5
+flipud: 0.0

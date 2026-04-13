@@ -1,0 +1,23 @@
+# Experiment 3: Aggressive augmentation + lower learning rate
+# Hypothesis: more augmentation = better generalization, but needs
+# lower LR to converge properly with the extra noise
+# This is the "throw everything at it" approach
+
+run_name: "exp3-heavy-aug"
+base_model: "yolov8n.pt"
+data_yaml: "data/traffic/data.yaml"
+
+epochs: 30        # more epochs because heavy augmentation needs more time
+imgsz: 416
+batch: 8
+lr0: 0.005        # lower LR — aggressive aug introduces noise
+lrf: 0.005
+
+augment: true
+mosaic: 1.0
+mixup: 0.15       # blend two images together 15% of the time
+hsv_h: 0.02       # stronger color jitter
+hsv_s: 0.8
+hsv_v: 0.5
+fliplr: 0.5
+flipud: 0.1       # slight vertical flip — unusual angles
