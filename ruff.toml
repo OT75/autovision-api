@@ -4,8 +4,14 @@ line-length = 100
 [lint]
 select = ["E", "W", "F", "I", "B", "UP"]
 ignore = [
-    "E501",
-    "B008",
+    "E501",   # line too long
+    "B008",   # FastAPI Depends pattern
+    "B904",   # raise from err (style preference)
+    "UP027",  # unpacked list comprehension
+    "F541",   # f-string without placeholders
+    "W292",   # no newline at end of file
+    "I001",   # import sort order
+    "F401",   # imported but unused (in conftest)
 ]
 
 [lint.per-file-ignores]
