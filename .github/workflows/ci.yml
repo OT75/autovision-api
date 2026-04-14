@@ -70,7 +70,20 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v4
+
+      # Free up ~10GB on the runner before building.
+      # GitHub's free runners have ~14GB total — ultralytics + PyTorch fills it up.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -af
+          df -h
+
       - uses: docker/setup-buildx-action@v3
+
       - name: Build image (no push)
         uses: docker/build-push-action@v5
         with:
@@ -92,6 +105,16 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -af
+          df -h
+
       - uses: docker/setup-buildx-action@v3
 
       - name: Login to GHCR
