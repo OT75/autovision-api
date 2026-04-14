@@ -107,7 +107,7 @@ autovision-api/
 |-------|--------|------|
 | 1 | Done | API + Docker + video + webcam stream |
 | 2 | Done | Fine-tune YOLO + MLflow experiment tracking |
-| 3 | Next | pytest + GitHub Actions CI/CD |
-| 4 | — | AWS deployment (ECR, EC2, S3) |
+| 3 | Done | pytest + GitHub Actions CI/CD |
+| 4 | Done | AWS deployment (ECR, EC2, S3) |
 | 5 | — | Prometheus + Grafana monitoring |
 | 6 | — | Gradio demo + blog post |
