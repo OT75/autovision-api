@@ -6,7 +6,7 @@ Fine-tuned on traffic data with MLflow experiment tracking, tested with pytest, 
 
 > **Full project documentation with screenshots and architecture diagrams:**
 > open [`DOCUMENTATION.html`](./DOCUMENTATION.html) in your browser
-> (Make sure that the HTML file and the docs folder are in the same directory).
+> (Make sure that the HTML file and the docs folder are downloaded on your device and in the same directory).
 
 ---
 
