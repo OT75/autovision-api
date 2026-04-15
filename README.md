@@ -5,7 +5,8 @@ Supports single images, video files, and real-time webcam streaming.
 Fine-tuned on traffic data with MLflow experiment tracking, tested with pytest, deployed to AWS.
 
 > **Full project documentation with screenshots and architecture diagrams:**
-> open [`DOCUMENTATION.html`](./DOCUMENTATION.html) in your browser (Make sure that the HTML file and the docs folder are in the same directory).
+> open [`DOCUMENTATION.html`](./DOCUMENTATION.html) in your browser
+> (Make sure that the HTML file and the docs folder are in the same directory).
 
 ---
 
