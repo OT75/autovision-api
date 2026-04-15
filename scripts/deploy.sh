@@ -11,7 +11,8 @@
 
 set -e
 
-ECR_REGISTRY="992764024031.dkr.ecr.eu-central-1.amazonaws.com"
+AWS_ACCOUNT_ID="${AWS_ACCOUNT_ID:?Set AWS_ACCOUNT_ID env var}"
+ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.eu-central-1.amazonaws.com"
 ECR_REPO="autovision-api"
 REGION="eu-central-1"
 IMAGE="$ECR_REGISTRY/$ECR_REPO:latest"

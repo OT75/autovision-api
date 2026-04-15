@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoVision API — MLOps Project</title>
+  <style>
+    /* ════════════════════════════════════════════════
+       TOKENS
+    ════════════════════════════════════════════════ */
+    :root {
+      --bg:       #080b14;
+      --surface:  #0f1525;
+      --surface2: #161d32;
+      --surface3: #1c263d;
+      --border:   #1f2d4a;
+      --border2:  #2a3a5c;
+      --accent:   #4f8ef7;
+      --accent2:  #7c5af7;
+      --green:    #3dd68c;
+      --yellow:   #f7c948;
+      --orange:   #f78c4f;
+      --text:     #e4eaf8;
+      --muted:    #6b7a9e;
+      --muted2:   #8892b0;
+      --code-bg:  #0a0e1a;
+      --glow-b:   rgba(79,142,247,0.18);
+      --glow-p:   rgba(124,90,247,0.18);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 15px;
+      overflow-x: hidden;
+    }
+
+    /* ════════════════════════════════════════════════
+       ANIMATED BACKGROUND GRID
+    ════════════════════════════════════════════════ */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(79,142,247,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79,142,247,0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+      animation: gridPulse 8s ease-in-out infinite;
+    }
+    @keyframes gridPulse {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.4; }
+    }
+
+    /* ════════════════════════════════════════════════
+       LAYOUT
+    ════════════════════════════════════════════════ */
+    .container { max-width: 1140px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 1; }
+
+    /* ════════════════════════════════════════════════
+       HERO
+    ════════════════════════════════════════════════ */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 5rem 2rem 6rem;
+      overflow: hidden;
+    }
+    /* Radial glow blobs */
+    .hero::before {
+      content: '';
+      position: absolute;
+      width: 700px; height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(79,142,247,0.12) 0%, transparent 70%);
+      top: 50%; left: 40%;
+      transform: translate(-50%,-50%);
+      animation: blobDrift 10s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      width: 500px; height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(124,90,247,0.10) 0%, transparent 70%);
+      top: 30%; left: 65%;
+      animation: blobDrift2 13s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+    @keyframes blobDrift  { from { transform: translate(-50%,-50%) scale(1);    } to { transform: translate(-50%,-50%) scale(1.3) translateX(40px); } }
+    @keyframes blobDrift2 { from { transform: scale(1);   } to { transform: scale(1.2) translateY(-30px); } }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(79,142,247,0.1);
+      border: 1px solid rgba(79,142,247,0.3);
+      border-radius: 999px;
+      padding: 0.35rem 1.1rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 2rem;
+      animation: fadeDown 0.7s ease both;
+    }
+    .hero-eyebrow .pulse-dot {
+      width: 7px; height: 7px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulseDot 2s ease-in-out infinite;
+    }
+    @keyframes pulseDot {
+      0%,100% { box-shadow: 0 0 0 0 rgba(61,214,140,0.6); }
+      50%      { box-shadow: 0 0 0 6px rgba(61,214,140,0); }
+    }
+
+    .hero h1 {
+      font-size: clamp(3rem, 7vw, 5.5rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      margin-bottom: 1.5rem;
+      animation: fadeDown 0.7s 0.1s ease both;
+    }
+    .hero h1 .word-auto { color: transparent; background: linear-gradient(135deg, #4f8ef7, #7c5af7); -webkit-background-clip: text; background-clip: text; }
+    .hero h1 .word-vision { color: transparent; background: linear-gradient(135deg, #7c5af7, #b77af4); -webkit-background-clip: text; background-clip: text; }
+
+    .hero-sub {
+      font-size: 1.15rem;
+      color: var(--muted2);
+      max-width: 620px;
+      margin: 0 auto 2.5rem;
+      animation: fadeDown 0.7s 0.2s ease both;
+    }
+
+    .hero-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      justify-content: center;
+      margin-bottom: 3rem;
+      animation: fadeDown 0.7s 0.3s ease both;
+    }
+    .hbadge {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.3rem 0.85rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted2);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .hbadge:hover { border-color: var(--accent); color: var(--accent); }
+    .hbadge.b { color: var(--accent); border-color: rgba(79,142,247,0.35); background: rgba(79,142,247,0.07); }
+    .hbadge.p { color: var(--accent2); border-color: rgba(124,90,247,0.35); background: rgba(124,90,247,0.07); }
+    .hbadge.g { color: var(--green);   border-color: rgba(61,214,140,0.35);  background: rgba(61,214,140,0.07); }
+    .hbadge.y { color: var(--yellow);  border-color: rgba(247,201,72,0.35);  background: rgba(247,201,72,0.07); }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      animation: fadeDown 1s 0.6s ease both;
+    }
+    .scroll-hint .chevrons { display: flex; flex-direction: column; gap: 3px; }
+    .scroll-hint .ch {
+      width: 10px; height: 10px;
+      border-right: 1.5px solid var(--muted);
+      border-bottom: 1.5px solid var(--muted);
+      transform: rotate(45deg);
+      animation: chBounce 1.4s ease-in-out infinite;
+    }
+    .scroll-hint .ch:nth-child(2) { animation-delay: 0.15s; opacity: 0.6; }
+    .scroll-hint .ch:nth-child(3) { animation-delay: 0.30s; opacity: 0.3; }
+    @keyframes chBounce { 0%,100% { transform: rotate(45deg) translateY(0); } 50% { transform: rotate(45deg) translateY(4px); } }
+
+    /* ════════════════════════════════════════════════
+       STATS BAR
+    ════════════════════════════════════════════════ */
+    .stats-bar {
+      position: relative;
+      z-index: 1;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .stats-inner {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+    }
+    .stat {
+      text-align: center;
+      padding: 0 1rem;
+      border-right: 1px solid var(--border);
+    }
+    .stat:last-child { border-right: none; }
+    .stat-num {
+      font-size: 2.4rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin-bottom: 0.3rem;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .stat-label { font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+
+    /* ════════════════════════════════════════════════
+       STICKY NAV
+    ════════════════════════════════════════════════ */
+    .toc {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background: rgba(8,11,20,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .toc-inner {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0.8rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+    .toc-brand {
+      font-weight: 800;
+      font-size: 0.9rem;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      white-space: nowrap;
+    }
+    .toc-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+    .toc-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.83rem;
+      font-weight: 500;
+      transition: color 0.2s;
+      white-space: nowrap;
+    }
+    .toc-links a:hover { color: var(--text); }
+
+    /* ════════════════════════════════════════════════
+       SECTIONS
+    ════════════════════════════════════════════════ */
+    section {
+      padding: 5rem 0;
+      position: relative;
+      z-index: 1;
+    }
+    section + section { border-top: 1px solid var(--border); }
+
+    .section-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+    .section-eyebrow .dot { width: 5px; height: 5px; background: var(--accent); border-radius: 50%; }
+
+    h2 {
+      font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.6rem;
+      line-height: 1.15;
+    }
+    h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 2.5rem 0 0.75rem;
+      color: var(--text);
+    }
+    p { color: var(--muted2); margin-bottom: 1rem; }
+    p strong { color: var(--text); }
+    code {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.1rem 0.42rem;
+      font-family: 'Consolas', 'Cascadia Code', monospace;
+      font-size: 0.82rem;
+      color: var(--accent);
+    }
+
+    /* ════════════════════════════════════════════════
+       PHASE HEADER
+    ════════════════════════════════════════════════ */
+    .phase-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.75rem;
+      margin-bottom: 2.5rem;
+      padding: 2rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .phase-header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--glow-b), transparent 60%);
+      pointer-events: none;
+    }
+    .phase-header.ph2::before { background: linear-gradient(135deg, var(--glow-p), transparent 60%); }
+    .phase-header.ph3::before { background: linear-gradient(135deg, rgba(61,214,140,0.1), transparent 60%); }
+    .phase-header.ph4::before { background: linear-gradient(135deg, rgba(247,201,72,0.08), transparent 60%); }
+
+    .phase-num {
+      flex-shrink: 0;
+      width: 64px; height: 64px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      font-weight: 900;
+      border: 2px solid;
+      position: relative;
+      z-index: 1;
+    }
+    .p1 { background: rgba(79,142,247,0.1);  border-color: rgba(79,142,247,0.4);  color: var(--accent);  }
+    .p2 { background: rgba(124,90,247,0.1);  border-color: rgba(124,90,247,0.4);  color: var(--accent2); }
+    .p3 { background: rgba(61,214,140,0.1);  border-color: rgba(61,214,140,0.4);  color: var(--green);   }
+    .p4 { background: rgba(247,201,72,0.1);  border-color: rgba(247,201,72,0.4);  color: var(--yellow);  }
+
+    .phase-meta { position: relative; z-index: 1; }
+    .phase-meta h2 { margin-bottom: 0.25rem; }
+    .phase-meta .sub { color: var(--muted); font-size: 0.9rem; margin: 0; }
+
+    /* ════════════════════════════════════════════════
+       CARDS
+    ════════════════════════════════════════════════ */
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr)); gap: 1rem; margin: 1.5rem 0; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.4rem;
+      transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 0% 0%, rgba(79,142,247,0.06), transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .card:hover { border-color: var(--border2); transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+    .card:hover::before { opacity: 1; }
+    .card-icon { font-size: 1.6rem; margin-bottom: 0.6rem; }
+    .card h4 { font-size: 0.9rem; font-weight: 700; color: var(--text); margin-bottom: 0.4rem; text-transform: none; letter-spacing: 0; }
+    .card p { font-size: 0.84rem; margin: 0; color: var(--muted); }
+
+    /* ════════════════════════════════════════════════
+       ENDPOINT TABLE
+    ════════════════════════════════════════════════ */
+    .endpoint-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+    .endpoint-table th { background: var(--surface2); text-align: left; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); padding: 0.75rem 1rem; }
+    .endpoint-table td { padding: 0.85rem 1rem; border-top: 1px solid var(--border); font-size: 0.87rem; color: var(--muted2); vertical-align: top; background: var(--surface); transition: background 0.15s; }
+    .endpoint-table tr:hover td { background: var(--surface2); }
+    .method { display: inline-block; font-weight: 700; font-size: 0.72rem; border-radius: 5px; padding: 0.18rem 0.55rem; font-family: monospace; }
+    .method.get  { background: rgba(61,214,140,0.12); color: var(--green);  border: 1px solid rgba(61,214,140,0.35); }
+    .method.post { background: rgba(79,142,247,0.12); color: var(--accent); border: 1px solid rgba(79,142,247,0.35); }
+    .method.ws   { background: rgba(247,201,72,0.12); color: var(--yellow); border: 1px solid rgba(247,201,72,0.35); }
+    .path { font-family: 'Consolas', monospace; color: var(--text); font-size: 0.87rem; }
+
+    /* ════════════════════════════════════════════════
+       CODE BLOCKS
+    ════════════════════════════════════════════════ */
+    .code-wrap {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 1rem 0;
+    }
+    .code-header {
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      padding: 0.5rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .code-dot:nth-child(1) { background: #ff5f57; }
+    .code-dot:nth-child(2) { background: #febc2e; }
+    .code-dot:nth-child(3) { background: #28c840; }
+    .code-lang { margin-left: auto; font-size: 0.72rem; color: var(--muted); font-family: monospace; }
+    pre {
+      padding: 1.25rem;
+      overflow-x: auto;
+      font-family: 'Consolas', 'Cascadia Code', 'Courier New', monospace;
+      font-size: 0.83rem;
+      line-height: 1.65;
+      color: #abb2bf;
+      margin: 0;
+    }
+    .cm { color: #5c6370; font-style: italic; }
+    .kw { color: #c678dd; }
+    .st { color: #98c379; }
+    .fn { color: #61afef; }
+    .nm { color: #d19a66; }
+    .vr { color: #e06c75; }
+
+    /* ════════════════════════════════════════════════
+       DIAGRAM
+    ════════════════════════════════════════════════ */
+    .diagram {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      margin: 1.5rem 0;
+      overflow-x: auto;
+    }
+    .diagram-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 1.5rem; }
+    .arch-flow { display: flex; align-items: stretch; margin: 0.5rem 0; flex-wrap: wrap; gap: 0; }
+    .arch-box { flex: 1; min-width: 110px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem; text-align: center; transition: border-color 0.2s, background 0.2s; }
+    .arch-box:hover { border-color: var(--border2); background: var(--surface3); }
+    .arch-box .ai { font-size: 1.6rem; margin-bottom: 0.35rem; }
+    .arch-box .an { font-size: 0.78rem; font-weight: 700; color: var(--text); }
+    .arch-box .at { font-size: 0.68rem; color: var(--muted); margin-top: 0.15rem; }
+    .arch-arrow { display: flex; align-items: center; color: var(--accent); font-size: 1rem; padding: 0 0.25rem; flex-shrink: 0; opacity: 0.6; }
+
+    /* ════════════════════════════════════════════════
+       EXPERIMENT TABLE
+    ════════════════════════════════════════════════ */
+    .exp-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+    .exp-table th { background: var(--surface2); text-align: left; padding: 0.65rem 1rem; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+    .exp-table td { padding: 0.8rem 1rem; border-top: 1px solid var(--border); font-size: 0.86rem; color: var(--muted2); background: var(--surface); transition: background 0.15s; }
+    .exp-table tr:hover td { background: var(--surface2); }
+    .exp-name { font-weight: 700; color: var(--text); font-family: monospace; font-size: 0.85rem; }
+
+    /* ════════════════════════════════════════════════
+       CI/CD PIPELINE
+    ════════════════════════════════════════════════ */
+    .pipeline { display: flex; align-items: center; gap: 0; margin: 2rem 0; flex-wrap: wrap; }
+    .pipeline-step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.1rem 1.25rem;
+      flex: 1;
+      min-width: 130px;
+      text-align: center;
+      transition: border-color 0.25s, transform 0.2s;
+      cursor: default;
+    }
+    .pipeline-step:hover { border-color: var(--border2); transform: translateY(-2px); }
+    .pipeline-step .si { font-size: 1.6rem; margin-bottom: 0.3rem; }
+    .pipeline-step .sn { font-size: 0.8rem; font-weight: 700; color: var(--text); }
+    .pipeline-step .sd { font-size: 0.71rem; color: var(--muted); margin-top: 0.2rem; }
+    .pipeline-arrow { color: var(--muted); font-size: 1rem; padding: 0 0.4rem; flex-shrink: 0; }
+
+    /* ════════════════════════════════════════════════
+       CALLOUT
+    ════════════════════════════════════════════════ */
+    .callout { border-radius: 12px; padding: 1rem 1.25rem; margin: 1.25rem 0; font-size: 0.87rem; display: flex; gap: 0.8rem; align-items: flex-start; }
+    .callout.info   { background: rgba(79,142,247,0.07);  border: 1px solid rgba(79,142,247,0.25); }
+    .callout.green  { background: rgba(61,214,140,0.07);  border: 1px solid rgba(61,214,140,0.25); }
+    .callout.yellow { background: rgba(247,201,72,0.07);  border: 1px solid rgba(247,201,72,0.25); }
+    .callout-body { color: var(--muted2); }
+    .callout-body strong { color: var(--text); }
+
+    /* ════════════════════════════════════════════════
+       STACK PILLS
+    ════════════════════════════════════════════════ */
+    .stack { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0 1.5rem; }
+    .pill {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 0.3rem 0.8rem;
+      font-size: 0.79rem;
+      font-weight: 600;
+      color: var(--muted2);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .pill:hover { border-color: var(--border2); color: var(--text); }
+
+    /* ════════════════════════════════════════════════
+       PHOTO GRID + IMAGE CARDS
+    ════════════════════════════════════════════════ */
+    .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1.25rem; margin: 1.5rem 0; }
+    .img-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      cursor: zoom-in;
+      transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+      group: true;
+    }
+    .img-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px) scale(1.01);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(79,142,247,0.2);
+    }
+    .img-card .img-wrap {
+      position: relative;
+      overflow: hidden;
+    }
+    .img-card img {
+      width: 100%;
+      display: block;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      object-position: top;
+      transition: transform 0.4s ease;
+    }
+    .img-card:hover img { transform: scale(1.04); }
+    .img-card .img-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(79,142,247,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .img-card:hover .img-overlay { opacity: 1; }
+    .img-overlay-icon { font-size: 2rem; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5)); }
+    .img-caption {
+      padding: 0.65rem 0.9rem;
+      font-size: 0.77rem;
+      color: var(--muted);
+      font-weight: 500;
+      background: var(--surface2);
+      border-top: 1px solid var(--border);
+    }
+
+    /* ════════════════════════════════════════════════
+       LIGHTBOX
+    ════════════════════════════════════════════════ */
+    #lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(4,6,14,0.96);
+      backdrop-filter: blur(10px);
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem;
+      cursor: zoom-out;
+    }
+    #lightbox.open { display: flex; animation: lbFadeIn 0.2s ease; }
+    @keyframes lbFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    #lb-img {
+      max-width: 90vw;
+      max-height: 85vh;
+      border-radius: 12px;
+      box-shadow: 0 32px 100px rgba(0,0,0,0.8);
+      object-fit: contain;
+      animation: lbScale 0.22s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes lbScale { from { transform: scale(0.88); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    #lb-close {
+      position: fixed;
+      top: 1.25rem; right: 1.5rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 38px; height: 38px;
+      border-radius: 9px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, transform 0.15s;
+      z-index: 1;
+    }
+    #lb-close:hover { background: var(--surface3); transform: scale(1.05); }
+    #lb-caption {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15,21,37,0.95);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.45rem 1.1rem;
+      font-size: 0.8rem;
+      color: var(--muted2);
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* ════════════════════════════════════════════════
+       SCROLL REVEAL
+    ════════════════════════════════════════════════ */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+
+    /* ════════════════════════════════════════════════
+       FOOTER
+    ════════════════════════════════════════════════ */
+    footer {
+      position: relative;
+      z-index: 1;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 2rem;
+      text-align: center;
+    }
+    .footer-brand {
+      font-size: 1.1rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 0.5rem;
+    }
+    footer p { font-size: 0.8rem; color: var(--muted); margin: 0; }
+
+    /* ════════════════════════════════════════════════
+       ANIMATIONS
+    ════════════════════════════════════════════════ */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ════════════════════════════════════════════════
+       RESPONSIVE
+    ════════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      .stats-inner { grid-template-columns: repeat(2,1fr); }
+      .stat:nth-child(2) { border-right: none; }
+      .stat:nth-child(3),
+      .stat:nth-child(4) { border-top: 1px solid var(--border); }
+      .pipeline { flex-direction: column; }
+      .pipeline-arrow { transform: rotate(90deg); }
+      .arch-flow { flex-direction: column; }
+      .arch-arrow { transform: rotate(90deg); padding: 0.15rem 0; justify-content: center; }
+    }
+    @media (max-width: 500px) {
+      .stats-inner { grid-template-columns: 1fr 1fr; }
+      .hero h1 { font-size: 2.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════ LIGHTBOX ══════════════════ -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lb-close" onclick="closeLightbox()">✕</button>
+  <img id="lb-img" src="" alt="" />
+  <div id="lb-caption"></div>
+</div>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<div class="hero">
+  <div class="hero-eyebrow">
+    <span class="pulse-dot"></span>
+    MLOps Project &nbsp;·&nbsp; All 4 Phases Complete
+  </div>
+  <h1>
+    <span class="word-auto">Auto</span><span class="word-vision">Vision</span><br/>API
+  </h1>
+  <p class="hero-sub">
+    A production-grade traffic &amp; vehicle detection service — from a containerized
+    REST API to fine-tuned YOLOv8 models, automated CI/CD, and AWS cloud deployment.
+  </p>
+  <div class="hero-badges">
+    <span class="hbadge b">YOLOv8</span>
+    <span class="hbadge b">FastAPI</span>
+    <span class="hbadge b">Docker</span>
+    <span class="hbadge b">WebSocket</span>
+    <span class="hbadge p">MLflow</span>
+    <span class="hbadge p">Roboflow</span>
+    <span class="hbadge g">pytest</span>
+    <span class="hbadge g">GitHub Actions</span>
+    <span class="hbadge g">GHCR</span>
+    <span class="hbadge y">AWS ECR</span>
+    <span class="hbadge y">AWS EC2</span>
+    <span class="hbadge">Python 3.11</span>
+    <span class="hbadge">OpenCV</span>
+  </div>
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="chevrons">
+      <div class="ch"></div>
+      <div class="ch"></div>
+      <div class="ch"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ STATS BAR ══════════════════ -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat">
+      <div class="stat-num" data-target="4">0</div>
+      <div class="stat-label">Phases Completed</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" data-target="1830">0</div>
+      <div class="stat-label">Training Images</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" data-target="3">0</div>
+      <div class="stat-label">Experiments Run</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" data-target="32">0</div>
+      <div class="stat-label">Automated Tests</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ NAV ══════════════════ -->
+<nav class="toc">
+  <div class="toc-inner">
+    <span class="toc-brand">AutoVision API</span>
+    <div class="toc-links">
+      <a href="#overview">Overview</a>
+      <a href="#phase1">Phase 1 — API</a>
+      <a href="#phase2">Phase 2 — Fine-Tuning</a>
+      <a href="#phase3">Phase 3 — CI/CD</a>
+      <a href="#phase4">Phase 4 — AWS</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+<!-- ══════════════════ OVERVIEW ══════════════════ -->
+<section id="overview">
+  <div class="reveal">
+    <div class="section-eyebrow"><span class="dot"></span>Introduction</div>
+    <h2>What is AutoVision API?</h2>
+    <p>AutoVision API is a <strong>traffic and vehicle detection service</strong> powered by YOLOv8 and exposed via a FastAPI REST interface. It accepts images, video files, and live webcam streams, returning annotated output with bounding boxes around detected vehicles, traffic lights, and pedestrians.</p>
+    <p>The project was built in <strong>four progressive MLOps phases</strong>, each layer adding production practices on top of the previous: raw model serving → experiment tracking → automated quality gates → cloud deployment.</p>
+  </div>
+
+  <div class="reveal reveal-delay-1">
+    <div class="diagram">
+      <div class="diagram-title">◈ High-Level Architecture</div>
+      <svg viewBox="0 0 900 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:900px;display:block;margin:0 auto;">
+        <defs>
+          <marker id="arr"  markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f8ef7"/></marker>
+          <marker id="arr2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#7c5af7"/></marker>
+          <marker id="arr3" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#3dd68c"/></marker>
+        </defs>
+        <!-- Clients -->
+        <rect x="10" y="100" width="110" height="48" rx="9" fill="#0f1525" stroke="#1f2d4a"/>
+        <text x="65" y="120" text-anchor="middle" fill="#6b7a9e" font-size="9.5" font-family="sans-serif">Browser / curl</text>
+        <text x="65" y="137" text-anchor="middle" fill="#e4eaf8" font-size="11" font-weight="bold" font-family="sans-serif">REST Client</text>
+        <rect x="10" y="185" width="110" height="48" rx="9" fill="#0f1525" stroke="#1f2d4a"/>
+        <text x="65" y="205" text-anchor="middle" fill="#6b7a9e" font-size="9.5" font-family="sans-serif">WebSocket</text>
+        <text x="65" y="222" text-anchor="middle" fill="#e4eaf8" font-size="11" font-weight="bold" font-family="sans-serif">Webcam Stream</text>
+        <line x1="120" y1="124" x2="192" y2="145" stroke="#4f8ef7" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="120" y1="209" x2="192" y2="188" stroke="#4f8ef7" stroke-width="1.5" marker-end="url(#arr)"/>
+        <!-- FastAPI -->
+        <rect x="192" y="88" width="148" height="162" rx="13" fill="#0f1525" stroke="#4f8ef760"/>
+        <text x="266" y="112" text-anchor="middle" fill="#4f8ef7" font-size="10" font-family="monospace" font-weight="bold">FASTAPI</text>
+        <text x="266" y="131" text-anchor="middle" fill="#6b7a9e" font-size="8.5" font-family="sans-serif">GET  /health</text>
+        <text x="266" y="148" text-anchor="middle" fill="#6b7a9e" font-size="8.5" font-family="sans-serif">POST /predict</text>
+        <text x="266" y="165" text-anchor="middle" fill="#6b7a9e" font-size="8.5" font-family="sans-serif">POST /predict/video</text>
+        <text x="266" y="182" text-anchor="middle" fill="#6b7a9e" font-size="8.5" font-family="sans-serif">GET  /stream</text>
+        <text x="266" y="199" text-anchor="middle" fill="#6b7a9e" font-size="8.5" font-family="sans-serif">WS   /ws/detect</text>
+        <text x="266" y="223" text-anchor="middle" fill="#e4eaf8" font-size="10" font-weight="bold" font-family="sans-serif">:8000</text>
+        <line x1="340" y1="169" x2="402" y2="169" stroke="#4f8ef7" stroke-width="1.5" marker-end="url(#arr)"/>
+        <!-- YOLOv8 -->
+        <rect x="402" y="130" width="128" height="78" rx="12" fill="#0f1525" stroke="#4f8ef760"/>
+        <text x="466" y="156" text-anchor="middle" fill="#4f8ef7" font-size="10" font-family="monospace" font-weight="bold">YOLOv8</text>
+        <text x="466" y="174" text-anchor="middle" fill="#6b7a9e" font-size="8.5" font-family="sans-serif">yolov8n.pt</text>
+        <text x="466" y="191" text-anchor="middle" fill="#6b7a9e" font-size="8.5" font-family="sans-serif">or fine-tuned .pt</text>
+        <path d="M 340 153 Q 372 118 402 138" stroke="#4f8ef740" stroke-width="1" fill="none" stroke-dasharray="4,3"/>
+        <text x="372" y="112" text-anchor="middle" fill="#4f8ef770" font-size="8" font-family="sans-serif">annotated JPEG/MP4</text>
+        <!-- MLflow -->
+        <rect x="402" y="48" width="128" height="58" rx="11" fill="#0f1525" stroke="#7c5af760"/>
+        <text x="466" y="72" text-anchor="middle" fill="#7c5af7" font-size="10" font-family="monospace" font-weight="bold">MLflow</text>
+        <text x="466" y="89" text-anchor="middle" fill="#6b7a9e" font-size="8.5" font-family="sans-serif">Model Registry · :5000</text>
+        <line x1="466" y1="106" x2="466" y2="130" stroke="#7c5af7" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr2)"/>
+        <!-- Volume -->
+        <rect x="402" y="252" width="128" height="46" rx="10" fill="#0f1525" stroke="#3dd68c50"/>
+        <text x="466" y="271" text-anchor="middle" fill="#3dd68c" font-size="9.5" font-family="monospace" font-weight="bold">Docker Volume</text>
+        <text x="466" y="287" text-anchor="middle" fill="#6b7a9e" font-size="8.5" font-family="sans-serif">mlflow-data</text>
+        <line x1="466" y1="208" x2="466" y2="252" stroke="#3dd68c60" stroke-width="1" stroke-dasharray="3,3"/>
+        <!-- Training -->
+        <rect x="578" y="38" width="156" height="196" rx="13" fill="#0f1525" stroke="#7c5af740"/>
+        <text x="656" y="63" text-anchor="middle" fill="#7c5af7" font-size="10" font-family="monospace" font-weight="bold">TRAINING</text>
+        <text x="656" y="82" text-anchor="middle" fill="#6b7a9e" font-size="8.5" font-family="sans-serif">Roboflow · 1,830 images</text>
+        <text x="656" y="99" text-anchor="middle" fill="#6b7a9e" font-size="8.5" font-family="sans-serif">3 experiments</text>
+        <text x="656" y="120" text-anchor="middle" fill="#e4eaf8" font-size="8.5" font-weight="bold" font-family="sans-serif">exp1-baseline</text>
+        <text x="656" y="137" text-anchor="middle" fill="#e4eaf8" font-size="8.5" font-weight="bold" font-family="sans-serif">exp2-high-res</text>
+        <text x="656" y="154" text-anchor="middle" fill="#e4eaf8" font-size="8.5" font-weight="bold" font-family="sans-serif">exp3-heavy-aug</text>
+        <text x="656" y="176" text-anchor="middle" fill="#6b7a9e" font-size="8.5" font-family="sans-serif">register_best.py</text>
+        <text x="656" y="193" text-anchor="middle" fill="#6b7a9e" font-size="8.5" font-family="sans-serif">→ Production stage</text>
+        <text x="656" y="218" text-anchor="middle" fill="#7c5af7" font-size="8" font-family="sans-serif" opacity="0.7">logs to MLflow ↑</text>
+        <line x1="578" y1="78" x2="530" y2="78" stroke="#7c5af7" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr2)"/>
+        <!-- AWS -->
+        <rect x="578" y="258" width="156" height="56" rx="12" fill="#0f1525" stroke="#f7c94840"/>
+        <text x="656" y="281" text-anchor="middle" fill="#f7c948" font-size="10" font-family="monospace" font-weight="bold">AWS</text>
+        <text x="656" y="298" text-anchor="middle" fill="#6b7a9e" font-size="8.5" font-family="sans-serif">ECR → EC2 :8000</text>
+        <!-- CI/CD -->
+        <rect x="758" y="88" width="130" height="126" rx="12" fill="#0f1525" stroke="#3dd68c40"/>
+        <text x="823" y="112" text-anchor="middle" fill="#3dd68c" font-size="10" font-family="monospace" font-weight="bold">CI / CD</text>
+        <text x="823" y="130" text-anchor="middle" fill="#6b7a9e" font-size="8.5" font-family="sans-serif">GitHub Actions</text>
+        <text x="823" y="148" text-anchor="middle" fill="#e4eaf8" font-size="8.5" font-family="sans-serif">ruff lint</text>
+        <text x="823" y="163" text-anchor="middle" fill="#e4eaf8" font-size="8.5" font-family="sans-serif">pytest 3.10+3.11</text>
+        <text x="823" y="178" text-anchor="middle" fill="#e4eaf8" font-size="8.5" font-family="sans-serif">docker build</text>
+        <text x="823" y="193" text-anchor="middle" fill="#e4eaf8" font-size="8.5" font-family="sans-serif">push → GHCR</text>
+        <line x1="823" y1="214" x2="734" y2="278" stroke="#3dd68c70" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr3)"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="reveal reveal-delay-2">
+    <h3>Technology Stack</h3>
+    <div class="stack">
+      <span class="pill">Python 3.11</span><span class="pill">FastAPI 0.111</span>
+      <span class="pill">Ultralytics YOLOv8</span><span class="pill">OpenCV</span>
+      <span class="pill">Pillow</span><span class="pill">MLflow 2.21</span>
+      <span class="pill">Docker + Compose</span><span class="pill">pytest + ruff</span>
+      <span class="pill">GitHub Actions</span><span class="pill">GHCR</span>
+      <span class="pill">AWS ECR + EC2</span><span class="pill">Roboflow</span>
+      <span class="pill">SQLite</span><span class="pill">WebSocket</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ PHASE 1 ══════════════════ -->
+<section id="phase1">
+  <div class="reveal">
+    <div class="phase-header">
+      <div class="phase-num p1">1</div>
+      <div class="phase-meta">
+        <div class="section-eyebrow"><span class="dot"></span>Phase 1</div>
+        <h2>API + Docker + Streaming</h2>
+        <p class="sub">Core detection service — REST endpoints, multi-stage Docker build, real-time webcam streaming</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="reveal reveal-delay-1">
+    <p>Phase 1 delivers the <strong>complete detection service</strong>: a FastAPI application wrapping YOLOv8, containerized with a production-grade multi-stage Dockerfile, and orchestrated alongside an MLflow container via docker-compose.</p>
+
+    <h3>API Endpoints</h3>
+    <table class="endpoint-table">
+      <thead><tr><th>Method</th><th>Path</th><th>Description</th><th>Response</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="method get">GET</span></td>
+          <td class="path">/health</td>
+          <td>Liveness check — confirms model is loaded</td>
+          <td>JSON: status, model_loaded, model_name</td>
+        </tr>
+        <tr>
+          <td><span class="method post">POST</span></td>
+          <td class="path">/predict</td>
+          <td>Upload JPEG/PNG/WebP (≤ 10 MB), get annotated image back</td>
+          <td>Annotated JPEG + <code>X-Detections</code> header</td>
+        </tr>
+        <tr>
+          <td><span class="method post">POST</span></td>
+          <td class="path">/predict/video</td>
+          <td>Upload MP4/AVI/WebM/MOV (≤ 100 MB). Configurable <code>sample_fps</code> (1–30).</td>
+          <td>Annotated MP4 + <code>X-Summary</code> header</td>
+        </tr>
+        <tr>
+          <td><span class="method get">GET</span></td>
+          <td class="path">/stream</td>
+          <td>Webcam live detection page served in browser</td>
+          <td>HTML page</td>
+        </tr>
+        <tr>
+          <td><span class="method ws">WS</span></td>
+          <td class="path">/ws/detect</td>
+          <td>Real-time detection. Client sends base64 JPEG, receives annotated frame + JSON</td>
+          <td>JSON: annotated frame + inference_ms</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="reveal reveal-delay-2">
+    <h3>Detection Pipeline</h3>
+    <div class="diagram">
+      <div class="diagram-title">◈ Image Inference Flow</div>
+      <div class="arch-flow">
+        <div class="arch-box"><div class="ai">📤</div><div class="an">Upload</div><div class="at">JPEG/PNG/WebP ≤ 10MB</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box"><div class="ai">✅</div><div class="an">Validation</div><div class="at">MIME · size · empty check</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box"><div class="ai">🔬</div><div class="an">YOLOv8</div><div class="at">conf ≥ 0.25 · filtered classes</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box"><div class="ai">🖊️</div><div class="an">Annotation</div><div class="at">OpenCV bboxes + labels</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box"><div class="ai">📥</div><div class="an">Response</div><div class="at">JPEG body + X-Detections</div></div>
+      </div>
+    </div>
+
+    <div class="card-grid">
+      <div class="card"><div class="card-icon">🚗</div><h4>Pretrained COCO Mode</h4><p>8 vehicle-relevant classes filtered from COCO's 80: car, truck, bus, motorcycle, bicycle, person, traffic light, stop sign.</p></div>
+      <div class="card"><div class="card-icon">🚛</div><h4>Fine-Tuned Mode</h4><p>3-class head (car · truck · bus) trained on 1,830 Roboflow images. Switches in automatically when <code>MODEL_SOURCE=mlflow</code>.</p></div>
+      <div class="card"><div class="card-icon">📹</div><h4>Video Processing</h4><p>Configurable <code>sample_fps</code>. Each sampled frame runs YOLO; annotations carry forward to non-sampled frames for smooth output.</p></div>
+      <div class="card"><div class="card-icon">📡</div><h4>WebSocket Stream</h4><p><code>getUserMedia</code> → base64 JPEG over WS → annotated frame + detection JSON. Client controls framerate — no queue buildup.</p></div>
+    </div>
+  </div>
+
+  <div class="reveal reveal-delay-1">
+    <h3>Multi-Stage Dockerfile</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-dot"></span><span class="code-dot"></span><span class="code-dot"></span><span class="code-lang">Dockerfile</span></div>
+      <pre><span class="cm"># Stage 1: builder — has compilers, installs all deps</span>
+<span class="kw">FROM</span> python:<span class="nm">3.11</span>-slim <span class="kw">AS</span> builder
+<span class="kw">RUN</span> apt-get install -y gcc libglib2.0-0 libgl1
+<span class="kw">RUN</span> pip install --prefix=/install -r requirements.txt
+
+<span class="cm"># Stage 2: runtime — lean image, no compilers</span>
+<span class="kw">FROM</span> python:<span class="nm">3.11</span>-slim
+<span class="kw">COPY</span> --from=builder /install /usr/local    <span class="cm"># only installed packages</span>
+<span class="kw">COPY</span> app/ app/
+<span class="kw">USER</span> appuser                               <span class="cm"># non-root security</span>
+<span class="kw">HEALTHCHECK</span> --interval=30s --retries=3 \
+  CMD python -c <span class="st">"urllib.request.urlopen('http://localhost:8000/health')"</span>
+<span class="kw">CMD</span> [<span class="st">"uvicorn"</span>, <span class="st">"app.main:app"</span>, <span class="st">"--host"</span>, <span class="st">"0.0.0.0"</span>, <span class="st">"--port"</span>, <span class="st">"8000"</span>]</pre>
+    </div>
+
+    <div class="card-grid">
+      <div class="card"><div class="card-icon">🔵</div><h4>api (port 8000)</h4><p>FastAPI app. <code>MODEL_SOURCE=local</code> uses yolov8n.pt; <code>MODEL_SOURCE=mlflow</code> loads the Production-staged fine-tuned model.</p></div>
+      <div class="card"><div class="card-icon">🟣</div><h4>mlflow (port 5000)</h4><p>MLflow tracking server. SQLite metadata backend. Artifacts on a shared Docker volume accessible by both containers.</p></div>
+      <div class="card"><div class="card-icon">💾</div><h4>mlflow-data volume</h4><p>Named Docker volume shared between <code>api</code> and <code>mlflow</code>. Holds both <code>mlflow.db</code> and all training artifacts (weights, plots).</p></div>
+    </div>
+  </div>
+
+  <div class="reveal">
+    <h3>Screenshots — Phase 1</h3>
+    <div class="photo-grid">
+      <div class="img-card" onclick="openLightbox('docs/img/phase1_swagger.png','Swagger UI — localhost:8000/docs')">
+        <div class="img-wrap"><img src="docs/img/phase1_swagger.png" alt="Swagger UI" loading="lazy"/><div class="img-overlay"><span class="img-overlay-icon">🔍</span></div></div>
+        <div class="img-caption">Swagger UI — /docs endpoint list</div>
+      </div>
+      <div class="img-card" onclick="openLightbox('docs/img/phase1_predict_result.jpg','Image Detection — annotated JPEG from POST /predict')">
+        <div class="img-wrap"><img src="docs/img/phase1_predict_result.jpg" alt="Predict Result" loading="lazy"/><div class="img-overlay"><span class="img-overlay-icon">🔍</span></div></div>
+        <div class="img-caption">Detection result — bounding boxes on image</div>
+      </div>
+      <div class="img-card" onclick="openLightbox('docs/img/phase1_stream.png','Live Stream — localhost:8000/stream')">
+        <div class="img-wrap"><img src="docs/img/phase1_stream.png" alt="Live Stream" loading="lazy"/><div class="img-overlay"><span class="img-overlay-icon">🔍</span></div></div>
+        <div class="img-caption">Live webcam stream with real-time detection</div>
+      </div>
+      <div class="img-card" onclick="openLightbox('docs/img/phase1_docker_compose.png','docker-compose up — both services running')">
+        <div class="img-wrap"><img src="docs/img/phase1_docker_compose.png" alt="docker-compose" loading="lazy"/><div class="img-overlay"><span class="img-overlay-icon">🔍</span></div></div>
+        <div class="img-caption">docker-compose up — api + mlflow running</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ PHASE 2 ══════════════════ -->
+<section id="phase2">
+  <div class="reveal">
+    <div class="phase-header ph2">
+      <div class="phase-num p2">2</div>
+      <div class="phase-meta">
+        <div class="section-eyebrow"><span class="dot"></span>Phase 2</div>
+        <h2>Fine-Tuning + MLflow Experiment Tracking</h2>
+        <p class="sub">Custom YOLO training on traffic data — reproducible experiments, automated model selection, registry promotion</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="reveal reveal-delay-1">
+    <div class="callout info">
+      <span>📦</span>
+      <div class="callout-body">
+        <strong>Roboflow Traffic Dataset (v9, 2023)</strong> — 1,830 annotated images · 3 classes: car · truck · bus · YOLOv8 format · Downloaded via <code>training/download_dataset.py</code>.
+      </div>
+    </div>
+
+    <h3>Three Controlled Experiments</h3>
+    <table class="exp-table">
+      <thead><tr><th>Experiment</th><th>Key Change</th><th>Epochs</th><th>imgsz</th><th>lr0</th><th>Hypothesis</th></tr></thead>
+      <tbody>
+        <tr><td class="exp-name">exp1-baseline</td><td>Control — defaults</td><td>20</td><td>416</td><td>0.010</td><td>Reference run for comparison</td></tr>
+        <tr><td class="exp-name">exp2-high-res</td><td>Resolution ↑ 416→640</td><td>20</td><td>640</td><td>0.010</td><td>Bigger images improve small/distant vehicle detection</td></tr>
+        <tr><td class="exp-name">exp3-heavy-aug</td><td>Aug ↑ + LR ↓ + mixup</td><td>30</td><td>416</td><td>0.005</td><td>Heavy aug generalizes better; lower LR needed to converge under noise</td></tr>
+      </tbody>
+    </table>
+
+    <div class="card-grid">
+      <div class="card"><div class="card-icon">⚙️</div><h4>Parameters Tracked</h4><p>base_model, epochs, imgsz, batch, lr0, lrf, mosaic, mixup — full config for every run.</p></div>
+      <div class="card"><div class="card-icon">📊</div><h4>Metrics Logged</h4><p>mAP50 · mAP50-95 · Precision · Recall — extracted from YOLO's <code>results.csv</code>.</p></div>
+      <div class="card"><div class="card-icon">💾</div><h4>Artifacts Uploaded</h4><p>Best weights (<code>best.pt</code>) + all training plots (F1 curve, PR curve, confusion matrix).</p></div>
+      <div class="card"><div class="card-icon">🏷️</div><h4>Auto-Registration</h4><p><code>register_best.py</code> picks the highest mAP50 run → registers as <code>autovision-traffic</code> → <strong>Production</strong>.</p></div>
+    </div>
+  </div>
+
+  <div class="reveal reveal-delay-2">
+    <h3>Training → Deployment Flow</h3>
+    <div class="diagram">
+      <div class="diagram-title">◈ Fine-Tuning Pipeline</div>
+      <div class="arch-flow">
+        <div class="arch-box"><div class="ai">📦</div><div class="an">Dataset</div><div class="at">download_dataset.py</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box"><div class="ai">🏋️</div><div class="an">YOLO Train</div><div class="at">train.py × 3 configs</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box"><div class="ai">📊</div><div class="an">MLflow Track</div><div class="at">params + metrics + artifacts</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box"><div class="ai">🏆</div><div class="an">Best Selection</div><div class="at">register_best.py (mAP50)</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box"><div class="ai">🚀</div><div class="an">Production</div><div class="at">MODEL_SOURCE=mlflow</div></div>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-dot"></span><span class="code-dot"></span><span class="code-dot"></span><span class="code-lang">docker-compose.yml</span></div>
+      <pre><span class="cm"># Local mode (default) — pretrained yolov8n, 8 COCO classes</span>
+<span class="vr">MODEL_SOURCE</span>=local
+
+<span class="cm"># MLflow mode — fine-tuned best.pt from Production registry, 3 classes</span>
+<span class="vr">MODEL_SOURCE</span>=mlflow</pre>
+    </div>
+  </div>
+
+  <div class="reveal">
+    <h3>Screenshots — Phase 2</h3>
+    <div class="photo-grid">
+      <div class="img-card" onclick="openLightbox('docs/img/phase2_mlflow_runs.png','MLflow — autovision-traffic-detection experiment runs')">
+        <div class="img-wrap"><img src="docs/img/phase2_mlflow_runs.png" alt="MLflow Runs" loading="lazy"/><div class="img-overlay"><span class="img-overlay-icon">🔍</span></div></div>
+        <div class="img-caption">MLflow — all 3 runs listed</div>
+      </div>
+      <div class="img-card" onclick="openLightbox('docs/img/phase2_mlflow_compare.png','MLflow Compare — mAP50, precision, recall side by side')">
+        <div class="img-wrap"><img src="docs/img/phase2_mlflow_compare.png" alt="MLflow Compare" loading="lazy"/><div class="img-overlay"><span class="img-overlay-icon">🔍</span></div></div>
+        <div class="img-caption">Compare view — metrics side by side</div>
+      </div>
+      <div class="img-card" onclick="openLightbox('docs/img/phase2_model_registry.png','Model Registry — autovision-traffic in Production')">
+        <div class="img-wrap"><img src="docs/img/phase2_model_registry.png" alt="Model Registry" loading="lazy"/><div class="img-overlay"><span class="img-overlay-icon">🔍</span></div></div>
+        <div class="img-caption">Model Registry — Production stage</div>
+      </div>
+      <div class="img-card" onclick="openLightbox('docs/img/phase2_run_detail.png','Run Detail — params, metrics, artifacts')">
+        <div class="img-wrap"><img src="docs/img/phase2_run_detail.png" alt="Run Detail" loading="lazy"/><div class="img-overlay"><span class="img-overlay-icon">🔍</span></div></div>
+        <div class="img-caption">Run detail — params, metrics, artifacts</div>
+      </div>
+      <div class="img-card" onclick="openLightbox('docs/img/phase2_training_curves.png','Training Curves — loss and mAP over epochs')">
+        <div class="img-wrap"><img src="docs/img/phase2_training_curves.png" alt="Training Curves" loading="lazy"/><div class="img-overlay"><span class="img-overlay-icon">🔍</span></div></div>
+        <div class="img-caption">Training curves — loss / mAP progression</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ PHASE 3 ══════════════════ -->
+<section id="phase3">
+  <div class="reveal">
+    <div class="phase-header ph3">
+      <div class="phase-num p3">3</div>
+      <div class="phase-meta">
+        <div class="section-eyebrow"><span class="dot"></span>Phase 3</div>
+        <h2>pytest Test Suite + GitHub Actions CI/CD</h2>
+        <p class="sub">Automated quality gates — lint, test matrix, Docker build verification, and container registry push</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="reveal reveal-delay-1">
+    <h3>CI/CD Pipeline — 4 Sequential Stages</h3>
+    <div class="pipeline">
+      <div class="pipeline-step"><div class="si">🔍</div><div class="sn">1. Lint</div><div class="sd">ruff check app/ tests/</div></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step"><div class="si">🧪</div><div class="sn">2. Tests</div><div class="sd">pytest matrix: Py 3.10 + 3.11</div></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step"><div class="si">🐳</div><div class="sn">3. Docker Build</div><div class="sd">Build image, validate Dockerfile</div></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step"><div class="si">📦</div><div class="sn">4. GHCR Push</div><div class="sd">Push to registry (main only)</div></div>
+    </div>
+
+    <div class="callout yellow">
+      <span>⚡</span>
+      <div class="callout-body">
+        <strong>Disk space trick:</strong> Free GitHub Actions runners have ~14GB. Installing <code>ultralytics</code> + PyTorch fills it. The pipeline removes pre-installed dotnet, Android SDK, GHC, and CodeQL before Docker builds — freeing ~10GB.
+      </div>
+    </div>
+  </div>
+
+  <div class="reveal reveal-delay-2">
+    <h3>Test Suite — 32 Tests, 4 Classes</h3>
+    <table class="exp-table">
+      <thead><tr><th>Class</th><th>Count</th><th>Coverage</th></tr></thead>
+      <tbody>
+        <tr><td class="exp-name">TestHealth</td><td>5</td><td>Status 200, healthy status, model_loaded, model_name present, JSON content-type</td></tr>
+        <tr><td class="exp-name">TestPredictImage</td><td>11</td><td>JPEG/PNG accepted, valid JPEG response, X-Detections JSON, wrong type/empty/no file → 422, small + large images</td></tr>
+        <tr><td class="exp-name">TestPredictVideo</td><td>9</td><td>MP4 accepted, video/mp4 response, X-Summary structure, wrong type/empty/no file → 422, sample_fps, out-of-range → 422</td></tr>
+        <tr><td class="exp-name">TestApiStructure</td><td>7</td><td>OpenAPI schema available, /docs available, unknown route → 404, all 4 endpoints in schema</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout green">
+      <span>✅</span>
+      <div class="callout-body">
+        All tests use a <strong>fully mocked detector</strong> — YOLO and MLflow are never invoked during CI. Fast, deterministic, no model downloads. Coverage report uploaded to Codecov from the Python 3.11 run.
+      </div>
+    </div>
+  </div>
+
+  <div class="reveal">
+    <h3>Screenshots — Phase 3</h3>
+    <div class="photo-grid">
+      <div class="img-card" onclick="openLightbox('docs/img/phase3_ci_green.png','GitHub Actions — all 4 jobs passing')">
+        <div class="img-wrap"><img src="docs/img/phase3_ci_green.png" alt="CI Green" loading="lazy"/><div class="img-overlay"><span class="img-overlay-icon">🔍</span></div></div>
+        <div class="img-caption">GitHub Actions — all 4 jobs green</div>
+      </div>
+      <div class="img-card" onclick="openLightbox('docs/img/phase3_pytest_output.png','pytest — all tests passing with coverage')">
+        <div class="img-wrap"><img src="docs/img/phase3_pytest_output.png" alt="pytest Output" loading="lazy"/><div class="img-overlay"><span class="img-overlay-icon">🔍</span></div></div>
+        <div class="img-caption">pytest — 32 passed + coverage table</div>
+      </div>
+      <div class="img-card" onclick="openLightbox('docs/img/phase3_matrix_tests.png','Matrix — Python 3.10 and 3.11 both passing')">
+        <div class="img-wrap"><img src="docs/img/phase3_matrix_tests.png" alt="Matrix Tests" loading="lazy"/><div class="img-overlay"><span class="img-overlay-icon">🔍</span></div></div>
+        <div class="img-caption">Matrix tests — Python 3.10 and 3.11</div>
+      </div>
+      <div class="img-card" onclick="openLightbox('docs/img/phase3_ghcr_package.png','GHCR — autovision-api image with tags')">
+        <div class="img-wrap"><img src="docs/img/phase3_ghcr_package.png" alt="GHCR Package" loading="lazy"/><div class="img-overlay"><span class="img-overlay-icon">🔍</span></div></div>
+        <div class="img-caption">GHCR — image with latest / sha / branch tags</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ PHASE 4 ══════════════════ -->
+<section id="phase4">
+  <div class="reveal">
+    <div class="phase-header ph4">
+      <div class="phase-num p4">4</div>
+      <div class="phase-meta">
+        <div class="section-eyebrow"><span class="dot"></span>Phase 4</div>
+        <h2>AWS Deployment — ECR + EC2</h2>
+        <p class="sub">Pushing the container to AWS Elastic Container Registry and serving it live from an EC2 instance</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="reveal reveal-delay-1">
+    <div class="card-grid">
+      <div class="card"><div class="card-icon">📦</div><h4>Amazon ECR</h4><p>Private container registry in eu-central-1 (Frankfurt). Image tagged and pushed via <code>scripts/deploy.sh</code>.</p></div>
+      <div class="card"><div class="card-icon">🖥️</div><h4>Amazon EC2</h4><p>Virtual machine running Docker. Container binds to port 8000 — same API, same endpoints, on cloud infrastructure.</p></div>
+      <div class="card"><div class="card-icon">🔐</div><h4>AWS CLI + IAM</h4><p>ECR login uses <code>aws ecr get-login-password</code> — temporary token, no static credentials stored in the image.</p></div>
+    </div>
+
+    <h3>Deployment Flow</h3>
+    <div class="diagram">
+      <div class="diagram-title">◈ AWS Deployment Pipeline</div>
+      <div class="arch-flow">
+        <div class="arch-box"><div class="ai">💻</div><div class="an">Local Build</div><div class="at">docker build .</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box"><div class="ai">🔑</div><div class="an">ECR Login</div><div class="at">aws ecr get-login-password</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box"><div class="ai">🏷️</div><div class="an">Tag Image</div><div class="at">docker tag → ECR_URI:latest</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box"><div class="ai">⬆️</div><div class="an">Push to ECR</div><div class="at">docker push ECR_URI</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box"><div class="ai">🖥️</div><div class="an">Run on EC2</div><div class="at">docker run -p 8000:8000</div></div>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-dot"></span><span class="code-dot"></span><span class="code-dot"></span><span class="code-lang">scripts/deploy.sh</span></div>
+      <pre><span class="cm"># Requires: AWS_ACCOUNT_ID env var + AWS CLI configured</span>
+<span class="vr">AWS_ACCOUNT_ID</span>=<span class="st">"${AWS_ACCOUNT_ID:?Set AWS_ACCOUNT_ID env var}"</span>
+<span class="vr">ECR_REGISTRY</span>=<span class="st">"${AWS_ACCOUNT_ID}.dkr.ecr.eu-central-1.amazonaws.com"</span>
+
+<span class="cm"># 1. Login — temporary token, no static keys</span>
+aws ecr get-login-password --region eu-central-1 | \
+  docker login --username AWS --password-stdin $ECR_REGISTRY
+
+<span class="cm"># 2. Build → tag → push</span>
+docker build -t autovision-api .
+docker tag autovision-api:latest $ECR_REGISTRY/autovision-api:latest
+docker push $ECR_REGISTRY/autovision-api:latest</pre>
+    </div>
+  </div>
+
+  <div class="reveal">
+    <h3>Screenshots — Phase 4</h3>
+    <div class="photo-grid">
+      <div class="img-card" onclick="openLightbox('docs/img/phase4_ecr_repo.png','AWS ECR — autovision-api repository')">
+        <div class="img-wrap"><img src="docs/img/phase4_ecr_repo.png" alt="ECR Repo" loading="lazy"/><div class="img-overlay"><span class="img-overlay-icon">🔍</span></div></div>
+        <div class="img-caption">AWS ECR — image with tags and push date</div>
+      </div>
+      <div class="img-card" onclick="openLightbox('docs/img/phase4_ec2_instance.png','AWS EC2 — instance running in eu-central-1')">
+        <div class="img-wrap"><img src="docs/img/phase4_ec2_instance.png" alt="EC2 Instance" loading="lazy"/><div class="img-overlay"><span class="img-overlay-icon">🔍</span></div></div>
+        <div class="img-caption">AWS EC2 — instance running, public IP</div>
+      </div>
+      <div class="img-card" onclick="openLightbox('docs/img/phase4_docker_ps_ec2.png','EC2 SSH — docker ps showing container on :8000')">
+        <div class="img-wrap"><img src="docs/img/phase4_docker_ps_ec2.png" alt="Docker on EC2" loading="lazy"/><div class="img-overlay"><span class="img-overlay-icon">🔍</span></div></div>
+        <div class="img-caption">EC2 — docker ps, container on port 8000</div>
+      </div>
+      <div class="img-card" onclick="openLightbox('docs/img/phase4_live_api.png','Live API — Swagger UI at EC2 IP:8000/docs')">
+        <div class="img-wrap"><img src="docs/img/phase4_live_api.png" alt="Live API" loading="lazy"/><div class="img-overlay"><span class="img-overlay-icon">🔍</span></div></div>
+        <div class="img-caption">Live API — Swagger UI served from AWS</div>
+      </div>
+      <div class="img-card" onclick="openLightbox('docs/img/phase4_deploy_output.png','deploy.sh — terminal output')">
+        <div class="img-wrap"><img src="docs/img/phase4_deploy_output.png" alt="Deploy Output" loading="lazy"/><div class="img-overlay"><span class="img-overlay-icon">🔍</span></div></div>
+        <div class="img-caption">deploy.sh — ECR login, build, push output</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /container -->
+
+<footer>
+  <div class="footer-brand">AutoVision API</div>
+  <p>MLOps Project · 4 Phases · YOLOv8 + FastAPI + MLflow + GitHub Actions + AWS ECR/EC2</p>
+</footer>
+
+<!-- ══════════════════ LIGHTBOX JS ══════════════════ -->
+<script>
+  function openLightbox(src, caption) {
+    document.getElementById('lb-img').src = src;
+    document.getElementById('lb-img').alt = caption;
+    document.getElementById('lb-caption').textContent = caption;
+    document.getElementById('lightbox').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+  document.getElementById('lb-img').addEventListener('click', e => e.stopPropagation());
+
+  /* ── Scroll-reveal ───────────────────────────── */
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  /* ── Counter animation ───────────────────────── */
+  function animateCounter(el, target, duration = 1200) {
+    const start = performance.now();
+    const isLarge = target >= 100;
+    const update = (now) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const val = Math.round(eased * target);
+      el.textContent = isLarge ? val.toLocaleString() : val;
+      if (progress < 1) requestAnimationFrame(update);
+    };
+    requestAnimationFrame(update);
+  }
+
+  const statsObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.querySelectorAll('[data-target]').forEach(num => {
+          animateCounter(num, parseInt(num.dataset.target));
+        });
+        statsObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.3 });
+  statsObserver.observe(document.querySelector('.stats-inner'));
+</script>
+
+</body>
+</html>

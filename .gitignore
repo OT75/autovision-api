@@ -27,3 +27,8 @@ Thumbs.db
 *.jpg
 *.png
 !tests/fixtures/
+!docs/img/*.png
+!docs/img/*.jpg
+
+# MLflow local database
+mlflow.db
