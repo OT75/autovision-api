@@ -12,12 +12,12 @@ Fine-tuned on traffic data with MLflow experiment tracking, tested with pytest, 
 
 ## Roadmap
 
-| Phase | Status | What |
-|-------|--------|------|
-| 1 | ✅ Done | FastAPI service + Docker + video processing + webcam WebSocket stream |
-| 2 | ✅ Done | YOLOv8 fine-tuning on Roboflow dataset + MLflow experiment tracking |
-| 3 | ✅ Done | pytest test suite (32 tests) + GitHub Actions CI/CD + GHCR push |
-| 4 | ✅ Done | AWS deployment — ECR container registry + EC2 compute |
+| Phase | What                                                                  |
+| ----- | --------------------------------------------------------------------- |
+| 1     | FastAPI service + Docker + video processing + webcam WebSocket stream |
+| 2     | YOLOv8 fine-tuning on Roboflow dataset + MLflow experiment tracking   |
+| 3     | pytest test suite (32 tests) + GitHub Actions CI/CD + GHCR push       |
+| 4     | AWS deployment — ECR container registry + EC2 compute                 |
 
 ---
 
@@ -35,15 +35,16 @@ docker-compose up --build
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/health` | Service health check — model loaded status |
-| `POST` | `/predict` | Upload image (JPEG/PNG/WebP) → annotated JPEG with bounding boxes |
-| `POST` | `/predict/video` | Upload video (MP4/AVI/WebM/MOV) → annotated MP4 |
-| `GET` | `/stream` | Live webcam detection in browser |
-| `WS` | `/ws/detect` | WebSocket — real-time frame detection |
+| Method | Endpoint         | Description                                                       |
+| ------ | ---------------- | ----------------------------------------------------------------- |
+| `GET`  | `/health`        | Service health check — model loaded status                        |
+| `POST` | `/predict`       | Upload image (JPEG/PNG/WebP) → annotated JPEG with bounding boxes |
+| `POST` | `/predict/video` | Upload video (MP4/AVI/WebM/MOV) → annotated MP4                   |
+| `GET`  | `/stream`        | Live webcam detection in browser                                  |
+| `WS`   | `/ws/detect`     | WebSocket — real-time frame detection                             |
 
 Detection results are returned in the response body (JPEG/MP4) **plus** a JSON header:
+
 - `POST /predict` → `X-Detections` header
 - `POST /predict/video` → `X-Summary` header
 
@@ -102,6 +103,7 @@ python training/register_best.py
 ### 6. Switch API to fine-tuned model
 
 In `docker-compose.yml`:
+
 ```yaml
 - MODEL_SOURCE=mlflow
 ```
