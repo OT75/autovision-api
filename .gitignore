@@ -32,3 +32,6 @@ Thumbs.db
 
 # MLflow local database
 mlflow.db
+
+# Claude
+.claude/
